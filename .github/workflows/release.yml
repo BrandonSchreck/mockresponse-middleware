@@ -1,9 +1,11 @@
 name: Create GitHub Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   release:
@@ -33,8 +35,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
           body: ${{ steps.notes.outputs.notes }}
           draft: false
           prerelease: false

@@ -1,6 +1,11 @@
 name: Build and Test
 
-on: [workflow_call]
+on: 
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -23,7 +28,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --settings tests.runsettings --verbosity normal
 
       - name: Pack Projects
-        run: dotnet pack --no-build --configuration Release -o ./artifacts
+        run: dotnet pack --no-build --configuration Release -p:PackageVersion=${{ inputs.version }} -o ./artifacts
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
