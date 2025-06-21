@@ -19,6 +19,8 @@ jobs:
       codeChanged: ${{ steps.diff.outputs.codeChanged }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Detect src/ changes (or force published)
         id: diff
@@ -30,7 +32,7 @@ jobs:
           fi
 
           # get all of the files that have changed
-          files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          files=$(git diff --name-only HEAD~1 HEAD)
           echo "::debug::changed files →"
           echo "$files"
 
