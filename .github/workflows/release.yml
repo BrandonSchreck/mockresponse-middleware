@@ -21,9 +21,12 @@ jobs:
               sha: context.sha
             });
 
-            const changelog = commits
-              .map(commit => `- ${commit.commit.message.split('\n')[0]}`)
-              .join('\n');
+            const changelog = commits.flatMap(commit =>
+              commit.commit.message
+                .split('\n')[0]           // get the title/first line
+                .split(';')               // split by semicolon
+                .map(topic => `- ${topic.trim()}`) // clean and format
+            ).join('\n');
 
             core.setOutput('notes', changelog);
 
