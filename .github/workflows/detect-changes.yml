@@ -1,0 +1,42 @@
+name: Detect Code Changes
+
+on:
+  workflow_call:
+    inputs:
+      force:
+        description: 'true if we want to publish regardless of src/ changes'
+        required: false
+        type: boolean
+    outputs:
+      codeChanged:
+        description: "true if any file under src/ changes _or_ force is true"
+        value: ${{ jobs.detect.outputs.codeChanged }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      codeChanged: ${{ steps.diff.outputs.codeChanged }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect src/ changes (or force published)
+        id: diff
+        run: |
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            echo "::debug::Force flag is true, skipping file diff."
+            echo "codeChanged=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # get all of the files that have changed
+          files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "::debug::changed files →"
+          echo "$files"
+
+          # we only want to deploy preview/release when src/** changes
+          if echo "$files" | grep -q '^src/'; then
+            echo "codeChanged=true" >> $GITHUB_OUTPUT
+          else
+            echo "codeChanged=false" >> $GITHUB_OUTPUT
+          fi

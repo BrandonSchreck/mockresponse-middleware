@@ -6,39 +6,43 @@ on:
     tags: ['v*']
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Bypass src/ change detection and publish anyay'
+        required: false
+        default: 'false'
 
 jobs:
-  set-version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.set.outputs.version }}
-    steps:
-      - name: Set Version from Context
-        id: set
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "version=1.0.0-preview.${{ github.run_number }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
+  version:
+    uses: ./.github/workflows/version.yml
+    with:
+      baseVersion: ${{ vars.BASE_VERSION }}
 
-  build-and-test:
-    needs: set-version
+  detect:
+    needs: [version]
+    uses: ./.github/workflows/detect-changes.yml
+    with:
+      force: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force }}
+
+  build:
+    needs: [version]
     uses: ./.github/workflows/build.yml
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
 
-  publish:
-    needs: build-and-test
-    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/v')
-    uses: ./.github/workflows/publish.yml
+  publish-preview:
+    needs: [build, detect]
+    if: ${{ github.ref == 'refs/heads/develop' && needs.detect.outputs.codeChanged == 'true' }}
+    uses: ./.github/workflows/publish-preview.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
     secrets: inherit
-    with:
-      version: ${{ needs.set-version.outputs.version }}
 
-  release:
-    needs: [build-and-test, publish]
-    if: startsWith(github.ref, 'refs/tags/v')
-    uses: ./.github/workflows/release.yml
+  publish-release:
+    needs: [build, detect]
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.detect.outputs.codeChanged == 'true' }}
+    uses: ./.github/workflows/publish-release.yml
     with:
-      version: ${{ needs.set-version.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
+    secrets: inherit

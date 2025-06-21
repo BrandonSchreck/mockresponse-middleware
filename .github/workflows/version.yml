@@ -1,0 +1,29 @@
+name: Compute Version
+
+on:
+  workflow_call:
+    inputs:
+      baseVersion:
+        required: true
+        type: string
+    outputs:
+      version:
+        description: "The computed version or preview version"
+        value: ${{ jobs.compute-version.outputs.version }}
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set.outputs.version }}
+    steps:
+      - name: Compute Version
+        id: set
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            # if on develop -> preview build
+            echo "version=${{ inputs.baseVersion }}-preview.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          else
+            # else use the tag name
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
