@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Testy Testerson
-        run: echo "Secret=${{ secrets.NUGET_API_KEY }}""
+        run: echo "Secret=${{ secrets.NUGET_API_KEY }}"
 
       - name: Push to NuGet
         run: |
