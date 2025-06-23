@@ -34,7 +34,7 @@ jobs:
 
   publish:
     needs: [build, detect]
-    if: ${{ github.ref == 'refs/heads/develop' && needs.detect.outputs.codeChanged == 'true' }}
+    if: ${{ (startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/hotfix/')) && needs.detect.outputs.codeChanged == 'true' }}
     uses: ./.github/workflows/push-to-nuget.yml
     with:
       version: ${{ needs.version.outputs.version }}
