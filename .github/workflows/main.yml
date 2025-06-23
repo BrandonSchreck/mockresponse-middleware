@@ -24,7 +24,7 @@ jobs:
     needs: [version]
     uses: ./.github/workflows/detect-changes.yml
     with:
-      force: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force }}
+      force: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force == 'true' }}
 
   build:
     needs: [version]
