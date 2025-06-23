@@ -1,6 +1,16 @@
 <a id="readme-top"></a>
 # MockResponse.Middleware
 
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![License](https://img.shields.io/github/license/BrandonSchreck/mockresponse-middleware)
+
+[![CI/CD Pipeline](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml)
+[![CodeQL](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql)
+
+[![NuGet - Core](https://img.shields.io/nuget/v/MockResponse.Middleware.Core.svg)](https://www.nuget.org/packages/MockResponse.Middleware.Core/)
+[![NuGet - Azure Blob Storage](https://img.shields.io/nuget/v/MockResponse.Middleware.Azure.BlobStorage.svg)](https://www.nuget.org/packages/MockResponse.Middleware.Azure.BlobStorage/)
+[![NuGet - Local Folder Store](https://img.shields.io/nuget/v/MockResponse.Middleware.LocalFolderStore.svg)](https://www.nuget.org/packages/MockResponse.Middleware.LocalFolderStore/)
+
 
 **MockResponse.Middleware** is a flexible and lightweight ASP.NET Core middleware solution designed to simplify serving mock responses during development, testing, or offline scenarios. It conditionally intercepts HTTP requests and returns configured mock responses based on defined mappings, request headers, and endpoint metadata, without altering backend logic.
 
@@ -16,6 +26,7 @@
 * [How the Mock Mapping System Works](#-how-the-mock-mapping-system-works)
 * [Getting Started](#-getting-started)
 * [Contributing](#-contributing)
+* [License](#-license)
 
 
 ## 🚀 Key Features
@@ -126,4 +137,9 @@ For comprehensive details, troubleshooting, and provider-specific configurations
 
 ## 📌 Contributing
 
-Contributions and feedback are welcomed and greatly appreciated! Open an issue or submit a pull request to enhance the project. 
+Contributions and feedback are welcomed and greatly appreciated! Open an issue or submit a pull request to enhance the project.
+
+
+## 📝 License
+
+This project is licensed under the [MIT License](./LICENSE).
