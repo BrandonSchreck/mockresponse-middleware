@@ -2,7 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [develop, main]
+    branches:
+      - develop
+      - main
+      - 'hotfix/xx'
     tags: ['v*']
   pull_request:
     branches: [main]
@@ -16,8 +19,6 @@ on:
 jobs:
   version:
     uses: ./.github/workflows/version.yml
-    with:
-      baseVersion: ${{ vars.BASE_VERSION }}
 
   detect:
     needs: [version]
@@ -31,10 +32,10 @@ jobs:
     with:
       version: ${{ needs.version.outputs.version }}
 
-  publish-preview:
+  publish:
     needs: [build, detect]
     if: ${{ github.ref == 'refs/heads/develop' && needs.detect.outputs.codeChanged == 'true' }}
-    uses: ./.github/workflows/publish-preview.yml
+    uses: ./.github/workflows/push-to-nuget.yml
     with:
       version: ${{ needs.version.outputs.version }}
     secrets: inherit
