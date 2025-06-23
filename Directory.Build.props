@@ -1,0 +1,15 @@
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Nuget Packaging/Metadata -->
+        <Authors>Brandon Schreck</Authors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>aspnetcore;mock;middleware</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/BrandonSchreck/mockresponse-middleware</RepositoryUrl>
+    </PropertyGroup>
+</Project>

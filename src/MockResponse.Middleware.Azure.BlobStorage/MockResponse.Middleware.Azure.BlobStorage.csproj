@@ -1,20 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
     <!-- Nuget Packaging/Metadata -->
-    <Authors>Brandon Schreck</Authors>
-    <Description>Mock response provider using Azure Blob Storage</Description>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeBuildOutput>true</IncludeBuildOutput>
     <PackageId>MockResponse.Middleware.Azure.BlobStorage</PackageId>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>aspnetcore;mock;middleware</PackageTags>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/BrandonSchreck/mockresponse-middleware</RepositoryUrl>
+    <Description>Mock response provider using Azure Blob Storage</Description>
   </PropertyGroup>
 
   <ItemGroup>

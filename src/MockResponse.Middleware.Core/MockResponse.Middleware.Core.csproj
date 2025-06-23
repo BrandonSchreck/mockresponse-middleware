@@ -1,19 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
     <!-- Nuget Packaging/Metadata -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>MockResponse.Middleware.Core</PackageId>
-    <Authors>Brandon Schreck</Authors>
     <Description>Internal middleware core for mock API responses.</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>aspnetcore;mock;middleware</PackageTags>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/BrandonSchreck/mockresponse-middleware</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

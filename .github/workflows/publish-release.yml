@@ -1,0 +1,44 @@
+name: Publish Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+jobs:
+  publish-release:
+    uses: ./.github/workflows/push-to-nuget.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  create-release:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Release Notes
+        id: notes
+        uses: actions/github-script@v7
+        with:
+          script: | 
+            const { data: commits } = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha
+            });
+            const changelog = commits.flatMap(c =>
+              c.commit.message.split('\n')[0]
+                        .split(';')
+                        .map(t => `- ${t.trim()}`)
+            ).join('\n');
+            core.setOutput('notes', changelog);
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
+          body: ${{ steps.notes.outputs.notes }}
+      
