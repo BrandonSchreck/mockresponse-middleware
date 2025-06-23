@@ -1,6 +1,13 @@
 <a id="readme-top"></a>
 # MockResponse.Middleware.Core
 
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![License](https://img.shields.io/github/license/BrandonSchreck/mockresponse-middleware)
+
+[![CI/CD Pipeline](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml)
+[![CodeQL](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql)
+[![NuGet - Core](https://img.shields.io/nuget/v/MockResponse.Middleware.Core.svg)](https://www.nuget.org/packages/MockResponse.Middleware.Core/)
+
 This package provides the core abstractions, middleware, and configuration models used by `MockResponse.Middleware`.
 
 It defines shared interfaces, options models, resolution strategies, and the base middleware pipeline that provider-specific 
