@@ -3,24 +3,24 @@ mode: ContinuousDeployment
 branches:
   develop:
     regex: ^develop$
-    tag: preview
+    label: preview
     increment: Minor
   
   main:
     regex: ^main$
-    tag: rc
+    label: rc
     increment: Patch
   
   hotfix:
     regex: ^hotfix[/-]
-    tag: rc
+    label: rc
     increment: Patch
   
   release:
     regex: ^tags/v?\d+\.\d+\.\d+$
-    tag: ''
-    source-branch:
-      - main
+    label: ''
+    source-branches:
+    - main
 
 ignore:
   sha: []
