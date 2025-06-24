@@ -8,7 +8,7 @@
         <Authors>Brandon Schreck</Authors>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageTags>aspnetcore;mock;middleware</PackageTags>
+        <PackageTags>aspnetcore;net8;mock;middleware;</PackageTags>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/BrandonSchreck/mockresponse-middleware</RepositoryUrl>
     </PropertyGroup>
