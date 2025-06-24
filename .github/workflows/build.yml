@@ -1,11 +1,6 @@
 name: Build and Test
 
-on: 
-  workflow_call:
-    outputs:
-      version:
-        description: "Version number extracted from tag"
-        value: ${{ jobs.build.outputs.version }}
+on: [workflow_call]
 
 permissions:
   contents: read
