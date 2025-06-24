@@ -19,8 +19,8 @@ branches:
   release:
     regex: ^tags/v?\d+\.\d+\.\d+$
     label: ''
-    source-branch:
-      - main
+    source-branches:
+    - main
 
 ignore:
   sha: []

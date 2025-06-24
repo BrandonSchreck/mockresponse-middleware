@@ -1,6 +1,13 @@
 <a id="readme-top"></a>
 # MockResponse.Middleware.Azure.BlobStorage
 
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![License](https://img.shields.io/github/license/BrandonSchreck/mockresponse-middleware)
+
+[![CI/CD Pipeline](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml)
+[![CodeQL](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql)
+[![NuGet - Azure Blob Storage](https://img.shields.io/nuget/v/MockResponse.Middleware.Azure.BlobStorage.svg)](https://www.nuget.org/packages/MockResponse.Middleware.Azure.BlobStorage/)
+
 This package provides an Azure Blob Storage-backed provider for use with the `MockResponse.Middleware` system. It enables serving mock API responses from Azure Blob Storage, ideal for testing and shared development environments where cloud-based access is still needed.
 
 

@@ -1,6 +1,13 @@
 <a id="readme-top"></a>
 # MockResponse.Middleware.LocalFolderStore
 
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![License](https://img.shields.io/github/license/BrandonSchreck/mockresponse-middleware)
+
+[![CI/CD Pipeline](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/main.yml)
+[![CodeQL](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BrandonSchreck/mockresponse-middleware/actions/workflows/github-code-scanning/codeql)
+[![NuGet - Local Folder Store](https://img.shields.io/nuget/v/MockResponse.Middleware.LocalFolderStore.svg)](https://www.nuget.org/packages/MockResponse.Middleware.LocalFolderStore/)
+
 This package provides a file system-based implementation for use with the `MockResponse.Middleware` system. It enables serving mock API responses from a local folder, ideal for testing or offline development scenarios where remote providers like Azure Blob Storage are not feasible.
 
 

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>4f255dcf-7148-4956-8fb2-4b0bc2d92e8d</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MockResponse.Middleware.Azure.BlobStorage" Version="0.1.0-preview.20" />
+  </ItemGroup>
+
+</Project>
