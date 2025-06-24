@@ -18,9 +18,14 @@ jobs:
       - name: Get Version from Tag
         id: version
         run: |
-          TAG=${GITHUB_REF#refs/tags/v}
-          echo "Using version $TAG"
-          echo "version=$TAG" >> $GITHUB_OUTPUT
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAG=${GITHUB_REF#refs/tags/v}
+            echo "Using version $TAG"
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+          else
+            echo "Not a version tag...skipping package version."
+            echo "version=" >> $GITHUB_OUTPUT
+          fi
 
       - uses: actions/checkout@v4
 
@@ -39,7 +44,12 @@ jobs:
         run: dotnet test --no-build --configuration Release --settings tests.runsettings --verbosity normal
 
       - name: Pack Projects
-        run: dotnet pack --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version }} -o ./artifacts
+        run: |
+          if [[ -n "${{ steps.version.outputs.version }}" ]]; then
+            dotnet pack --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version }} -o ./artifacts
+          else
+            dotnet pack --no-build --configuration Release -o ./artifacts
+          fi
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
