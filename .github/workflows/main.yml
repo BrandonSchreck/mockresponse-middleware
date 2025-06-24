@@ -20,8 +20,6 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v') && (contains(github.ref, '-preview') || contains(github.ref, '-rc'))
     uses: ./.github/workflows/push-to-nuget.yml
-    with:
-      version: ${{ needs.build.outputs.version }}
     secrets: inherit
 
   publish-release:
@@ -30,7 +28,4 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/publish-release.yml
-    with:
-      version: ${{ needs.build.outputs.version }}
     secrets: inherit
-    
