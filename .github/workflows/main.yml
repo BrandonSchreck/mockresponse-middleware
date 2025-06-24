@@ -27,6 +27,8 @@ jobs:
   publish-release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')
+    permissions:
+      contents: write
     uses: ./.github/workflows/publish-release.yml
     with:
       version: ${{ needs.build.outputs.version }}
