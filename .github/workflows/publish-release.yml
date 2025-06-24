@@ -7,6 +7,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   publish-release:
     uses: ./.github/workflows/push-to-nuget.yml
@@ -17,6 +20,8 @@ jobs:
   create-release:
     needs: publish-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Generate Release Notes
         id: notes
