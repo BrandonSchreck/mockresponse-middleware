@@ -2,15 +2,26 @@ name: Build and Test
 
 on: 
   workflow_call:
-    inputs:
+    outputs:
       version:
-        required: true
-        type: string
+        description: "Version number extracted from tag"
+        value: ${{ jobs.build.outputs.version }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
     steps:
+      - name: Get Version from Tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          echo "Using version $TAG"
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v4
 
       - name: Setup .NET
@@ -28,7 +39,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --settings tests.runsettings --verbosity normal
 
       - name: Pack Projects
-        run: dotnet pack --no-build --configuration Release -p:PackageVersion=${{ inputs.version }} -o ./artifacts
+        run: dotnet pack --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version }} -o ./artifacts
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4

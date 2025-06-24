@@ -5,46 +5,27 @@ on:
     branches:
       - develop
       - main
-      - 'hotfix/xx'
     tags: ['v*']
   pull_request:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      force:
-        description: 'Bypass src/ change detection and publish anyay'
-        required: false
-        default: 'false'
 
 jobs:
-  version:
-    uses: ./.github/workflows/version.yml
-
-  detect:
-    needs: [version]
-    uses: ./.github/workflows/detect-changes.yml
-    with:
-      force: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force == 'true' }}
-
   build:
-    needs: [version]
     uses: ./.github/workflows/build.yml
-    with:
-      version: ${{ needs.version.outputs.version }}
 
-  publish:
-    needs: [build, detect]
-    if: ${{ (startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/hotfix/')) && needs.detect.outputs.codeChanged == 'true' }}
+  publish-preview:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && (contains(github.ref, '-preview') || contains(github.ref, '-rc'))
     uses: ./.github/workflows/push-to-nuget.yml
     with:
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ needs.build.outputs.version }}
     secrets: inherit
 
-  publish-release:
-    needs: [build, detect]
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.detect.outputs.codeChanged == 'true' }}
+  publish-review:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
     uses: ./.github/workflows/publish-release.yml
     with:
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ needs.build.outputs.version }}
     secrets: inherit
     
