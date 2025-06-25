@@ -44,7 +44,10 @@ jobs:
       - name: Pack Projects
         run: |
           if [[ -n "${{ steps.version.outputs.version }}" ]]; then
-            dotnet pack --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version }} -o ./artifacts
+            dotnet pack --no-build --configuration Release \
+            -p:PackageVersion=${{ steps.version.outputs.version }} \
+            -p:RepositoryCommit=$(git rev-parse HEAD) \
+            -o ./artifacts
           else
             dotnet pack --no-build --configuration Release -o ./artifacts
           fi
