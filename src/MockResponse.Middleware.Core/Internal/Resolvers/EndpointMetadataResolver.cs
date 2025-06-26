@@ -20,9 +20,6 @@ internal sealed class EndpointMetadataResolver : IEndpointMetadataResolver
     /// A read-only list of <see cref="IProducesResponseTypeMetadata"/> entries that match the status code,
     /// excluding those whose type is <see cref="IResult"/>.
     /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if no endpoint is found on the <see cref="HttpContext"/>. This typically indicates a misconfigured routing setup.
-    /// </exception>
     public IReadOnlyList<IProducesResponseTypeMetadata> GetMetadata(HttpContext context, int statusCode)
     {
         return context.GetEndpoint()?.Metadata.OfType<IProducesResponseTypeMetadata>()

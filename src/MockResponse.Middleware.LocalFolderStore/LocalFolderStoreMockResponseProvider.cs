@@ -9,7 +9,7 @@ namespace MockResponse.Middleware.LocalFolderStore;
 /// A mock response provider that reads JSON response files from a specified local folder on disk.
 /// Implements dynamic configuration via <see cref="IOptionsMonitor{TOptions}"/> to support runtime updates.
 /// </summary>
-internal sealed class LocalFolderStoreMockResponseProvider : IMockResponseProvider, IMockResponseProviderDefinition, IDisposable
+internal sealed class LocalFolderStoreMockResponseProvider : IMockResponseProvider, IMockResponseProviderDefinition
 {
     /// <summary>
     /// Gets the logical name of the provider used for registration and logging.
@@ -23,7 +23,6 @@ internal sealed class LocalFolderStoreMockResponseProvider : IMockResponseProvid
 
     private string _folderPath = default!;
     private readonly IFileSystem _fileSystem;
-    private readonly IDisposable? _onChangeListener;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalFolderStoreMockResponseProvider"/> class.
@@ -31,14 +30,13 @@ internal sealed class LocalFolderStoreMockResponseProvider : IMockResponseProvid
     /// <param name="fileSystem">An abstraction over file system access for easier testing.</param>
     /// <param name="options">An options monitor that provides configuration and supports change tracking.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="fileSystem"/> or <paramref name="options"/> are null.</exception>
-    public LocalFolderStoreMockResponseProvider(IFileSystem fileSystem,  IOptionsMonitor<LocalFolderStoreOptions> options)
+    public LocalFolderStoreMockResponseProvider(IFileSystem fileSystem, LocalFolderStoreOptions options)
     {
-        _fileSystem = fileSystem;
         ArgumentNullException.ThrowIfNull(fileSystem);
         ArgumentNullException.ThrowIfNull(options);
 
-        _onChangeListener = options.OnChange(OptionsChangeHandler);
-        OptionsChangeHandler(options.CurrentValue);
+        _fileSystem = fileSystem;
+        _folderPath = options.FolderPath;
     }
 
     /// <summary>
@@ -58,24 +56,5 @@ internal sealed class LocalFolderStoreMockResponseProvider : IMockResponseProvid
         }
 
         return (await _fileSystem.ReadAllTextAsync(filePath), Name);
-    }
-
-    /// <summary>
-    /// Disposes of the change listener to stop monitoring for configuration updates.
-    /// </summary>
-    public void Dispose() => _onChangeListener?.Dispose();
-
-    /// <summary>
-    /// Updates the internal folder path whenever configuration changes.
-    /// </summary>
-    /// <param name="options">The update options instance.</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when <see cref="LocalFolderStoreOptions.FolderPath"/> is null or whitespace.
-    /// </exception>
-    private void OptionsChangeHandler(LocalFolderStoreOptions options)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(options.FolderPath);
-
-        _folderPath = options.FolderPath;
     }
 }

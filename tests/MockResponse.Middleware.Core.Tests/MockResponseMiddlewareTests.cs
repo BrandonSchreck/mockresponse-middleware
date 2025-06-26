@@ -14,6 +14,7 @@ public class MockResponseMiddlewareTests
 
     private IMockingPolicy _policy = default!;
     private IMockReferenceResolver _refResolver = default!;
+    private IMockProviderFactory _factory = default!;
     private IMockResponseProvider _respProvider = default!;
     private ILogger<MockResponseMiddleware> _logger = default!;
 
@@ -28,6 +29,7 @@ public class MockResponseMiddlewareTests
         
         _policy = Substitute.For<IMockingPolicy>();
         _refResolver = Substitute.For<IMockReferenceResolver>();
+        _factory = Substitute.For<IMockProviderFactory>();
         _respProvider = Substitute.For<IMockResponseProvider>();
         _logger = Substitute.For<ILogger<MockResponseMiddleware>>();
     }
@@ -155,6 +157,8 @@ public class MockResponseMiddlewareTests
         _respProvider.GetMockResponseAsync(Arg.Any<string>())
             .Returns(providerResponse?.Invoke("default-id") ?? Task.FromResult(("{}", "TestProvider")));
 
-        return new MockResponseMiddleware(_requestDelegate, new[] { _policy }, _refResolver, _respProvider, _logger);
+        _factory.Create().Returns(_respProvider);
+
+        return new MockResponseMiddleware(_requestDelegate, new[] { _policy }, _refResolver, _factory, _logger);
     }
 }

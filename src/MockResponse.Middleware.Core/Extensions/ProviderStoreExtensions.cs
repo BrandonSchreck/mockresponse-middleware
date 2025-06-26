@@ -1,27 +1,36 @@
 ﻿using MockResponse.Middleware.Core.Contracts.Interfaces;
 using MockResponse.Middleware.Core.Options;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MockResponse.Middleware.Core.Internal.Factories;
 
 namespace MockResponse.Middleware.Core.Extensions;
 
 /// <summary>
-/// Extension methods for registering a custom mock response provider with the API mocking system.
+/// Extension methods for registering a deferred mock response provider with the API mocking system.
 /// </summary>
 public static class ProviderStoreExtensions
 {
 
     /// <summary>
-    /// Registers a mock response provider using the default configuration section name defined by <typeparam name="TOptions"></typeparam>: "MockOptions.{TOptions.SectionName}".
+    /// Registers a deferred mock response provider using the default configuration section name defined by 
+    /// <typeparam name="TOptions"/> "MockOptions.{TOptions.SectionName}".
     /// </summary>
-    /// <typeparam name="TOptions">The options class type that implements <see cref="IProviderOptions"/>.</typeparam>
-    /// <typeparam name="TProvider">The provider class that implements <see cref="IMockResponseProvider"/> and <see cref="IMockResponseProviderDefinition"/>.</typeparam>
-    /// <param name="builder">The API mocking builder to register the provider with.</param>
-    /// <param name="providerName">The logical name used to identify the provider implementation.</param>
-    /// <param name="configureOptions">An optional delegate to further configure/override the provider's options.</param>
-    /// <returns>The same <see cref="IApiMockingBuilder"/> instance for chaining.</returns>
+    /// <typeparam name="TOptions">
+    /// The strongly-typed options class bound from configuration.
+    /// </typeparam>
+    /// <typeparam name="TProvider">
+    /// The provider implementation to be created at runtime.
+    /// </typeparam>
+    /// <param name="builder">The mocking builder used to configure services.</param>
+    /// <param name="providerName">Logical name of the provider used for diagnostics and validation.</param>
+    /// <param name="configureOptions">Optional delegate to override values programmatically.</param>
+    /// <returns>The updated <see cref="IApiMockingBuilder"/> for chaining.</returns>
+    /// <remarks>
+    /// This method registers a factory that defers creation of the mock provider until it is first used.
+    /// Any configuration-related exceptions will be thrown at runtime when the factory's <c>Create()</c> method is invoked.
+    /// </remarks>
     public static IApiMockingBuilder AddStore<TOptions, TProvider>(this IApiMockingBuilder builder, string providerName, Action<TOptions>? configureOptions = null)
-        where TOptions : class, IProviderOptions
+        where TOptions : class, IProviderOptions, new()
         where TProvider : class, IMockResponseProvider, IMockResponseProviderDefinition
     {
         var defaultPath = $"{MockOptions.SectionName}:{TOptions.SectionName}";
@@ -29,59 +38,51 @@ public static class ProviderStoreExtensions
     }
 
     /// <summary>
-    /// Registers a mock response provider using a custom configuration section path.
+    /// Registers a deferred mock response provider and its associated configuration into the DI container.
+    /// This enables runtime-safe resolution of mock response providers (e.g., Azure Blob, Local Folder, or custom).
     /// </summary>
-    /// <typeparam name="TOptions">The options class type that implements <see cref="IProviderOptions"/>.</typeparam>
-    /// <typeparam name="TProvider">The provider class that implements <see cref="IMockResponseProvider"/> and <see cref="IMockResponseProviderDefinition"/>.</typeparam>
-    /// <param name="builder">The API mocking builder to register the provider with.</param>
-    /// <param name="providerName">The logical name used to identify the provider implementation.</param>
-    /// <param name="configurationSectionPath">The full configuration path to bind options from (e.g. "MyCustomConfig:ProviderSettings")</param>
-    /// <param name="configureOptions">An optional delegate to further configure/override the provider's options.</param>
-    /// <returns>The same <see cref="IApiMockingBuilder"/> instance for chaining.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if:
-    /// <list type="bullet">
-    /// <item>Another provider has already been registered</item>
-    /// <item>The specified configuration section does not exist</item>
-    /// <item>The resolved provider's <c>Name</c> does not match the expected <param name="providerName"/>.</item>
-    /// </list>
-    /// </exception>
+    /// <typeparam name="TOptions">
+    /// The strongly-typed options class bound from configuration.
+    /// </typeparam>
+    /// <typeparam name="TProvider">
+    /// The provider implementation to be created at runtime.
+    /// </typeparam>
+    /// <param name="builder">The mocking builder used to configure services.</param>
+    /// <param name="providerName">Logical name of the provider used for diagnostics and validation.</param>
+    /// <param name="configurationSectionPath">Configuration section to bind options from (e.g., "MockOptions:BlobStorageOptions").</param>
+    /// <param name="configureOptions">Optional delegate to override values programmatically.</param>
+    /// <returns>The updated <see cref="IApiMockingBuilder"/> for chaining.</returns>
+    /// <remarks>
+    /// This method registers a factory that defers creation of the mock provider until it is first used.
+    /// Any configuration-related exceptions will be thrown at runtime when the factory's <c>Create()</c> method is invoked.
+    /// </remarks>
     public static IApiMockingBuilder AddStore<TOptions, TProvider>(this IApiMockingBuilder builder, string providerName, string configurationSectionPath, Action<TOptions>? configureOptions = null)
-        where TOptions : class, IProviderOptions
+        where TOptions : class, IProviderOptions, new()
         where TProvider : class, IMockResponseProvider, IMockResponseProviderDefinition
     {
-        if (builder.Services.Any(service => service.ServiceType == typeof(IMockResponseProvider)))
+        if (builder.Services.Any(service => service.ServiceType == typeof(IMockProviderFactory)))
         {
             throw new InvalidOperationException("Only one mock response provider can be registered.");
         }
 
-        var section = builder.Configuration.GetSection(configurationSectionPath);
-        if (!section.Exists())
+        builder.Services.AddSingleton<IMockProviderFactory>(serviceProvider =>
         {
-            throw new InvalidOperationException(
-                $"Missing configuration section '{configurationSectionPath}' for provider '{providerName}'"
-            );
-        }
-
-        var options = builder.Services.AddOptions<TOptions>().Bind(section).ValidateDataAnnotations().ValidateOnStart();
-        if (configureOptions != null)
-        {
-            options.Configure(configureOptions);
-        }
-
-        builder.Services.AddSingleton<TProvider>();
-        builder.Services.AddSingleton<IMockResponseProvider>(sp =>
-        {
-            var provider = sp.GetRequiredService<TProvider>();
-            if (provider.Name != providerName)
+            var context = new ProviderFactoryContext<TOptions, TProvider>
             {
-                throw new InvalidOperationException(
-                    $"Provider {typeof(TProvider).Name} has Name='{provider.Name}' but was registered as '{providerName}'"
-                );
-            }
+                Configuration = builder.Configuration,
+                ConfigureOptions = configureOptions,
+                ConfigurationSectionPath = configurationSectionPath,
+                Initializer = (opts, sp) => ActivatorUtilities.CreateInstance<TProvider>(sp, opts),
+                ProviderName = providerName,
+                ServiceProvider = serviceProvider
+            };
 
-            return provider;
+            return new DeferredMockProviderFactory<TOptions, TProvider>(context);
         });
+
+        builder.Services.AddSingleton(sp => 
+            (IMockProviderFactory<TOptions, TProvider>)sp.GetRequiredService<IMockProviderFactory>()
+        );
 
         return builder;
     }

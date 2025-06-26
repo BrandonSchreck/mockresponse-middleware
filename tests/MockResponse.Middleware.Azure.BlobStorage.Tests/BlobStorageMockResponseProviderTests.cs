@@ -1,5 +1,4 @@
-﻿using MockResponse.Middleware.TestUtilities;
-using Azure;
+﻿using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using NSubstitute;
@@ -11,7 +10,7 @@ public sealed class BlobStorageMockResponseProviderTests
 {
     private BlobContainerClient _mockedContainer = default!;
     private IBlobContainerClientFactory _factoryMock = default!;
-    private TestOptionsMonitor<BlobStorageOptions> _optionsMock = default!;
+    private BlobStorageOptions _options = default!;
 
     private const string DefaultConnectionString = "connectionString";
     private const string DefaultContainerName = "containerName";
@@ -25,22 +24,21 @@ public sealed class BlobStorageMockResponseProviderTests
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         _factoryMock = Substitute.For<IBlobContainerClientFactory>();
-        _factoryMock
-            .Create(Arg.Any<string>(), Arg.Any<string>())
+        _factoryMock.Create(Arg.Any<string>(), Arg.Any<string>())
             .Returns(_mockedContainer);
 
-        _optionsMock = new TestOptionsMonitor<BlobStorageOptions>(new BlobStorageOptions
+        _options = new BlobStorageOptions
         {
             ConnectionString = DefaultConnectionString,
             ContainerName = DefaultContainerName
-        });
+        };
     }
 
     [TestMethod]
     public void Constructor_Throws_ArgumentNullException_For_Null_IBlobContainerClientFactory()
     {
         // Arrange/Act/Assert
-        Assert.Throws<ArgumentNullException>(() => new BlobStorageMockResponseProvider(null!, _optionsMock));
+        Assert.Throws<ArgumentNullException>(() => new BlobStorageMockResponseProvider(null!, _options));
     }
 
     [TestMethod]
@@ -50,55 +48,28 @@ public sealed class BlobStorageMockResponseProviderTests
         Assert.Throws<ArgumentNullException>(() => new BlobStorageMockResponseProvider(_factoryMock, null!));
     }
 
-    [DataTestMethod]
-    [DataRow(null, "container")]
-    [DataRow("", "container")]
-    [DataRow("connectionString", null)]
-    [DataRow("connectionString", "")]
-    public async Task Constructor_Throws_ArgumentException_For_Invalid_BlobStorageOptions(string connectionString, string container)
-    {
-        // Arrange
-        _optionsMock = new TestOptionsMonitor<BlobStorageOptions>(new BlobStorageOptions
-        {
-            ConnectionString = connectionString,
-            ContainerName = container
-        });
-
-        // Act
-        var provider = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
-
-        // Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => provider.GetMockResponseAsync("fake.json"));
-    }
-
     [TestMethod]
-    public async Task Constructor_Throws_InvalidOperationException_When_Container_Does_Not_Exist()
+    public void Constructor_Throws_InvalidOperationException_When_Container_Does_Not_Exist()
     {
         // Arrange
         _mockedContainer
             .When(c => c.Exists(Arg.Any<CancellationToken>()))
             .Do(_ => throw new RequestFailedException("womp womp"));
 
-        // Act
-        var provider = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
-
-        // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.GetMockResponseAsync("fake.json"));
+        // Act/Assert
+        Assert.Throws<InvalidOperationException>(() => new BlobStorageMockResponseProvider(_factoryMock, _options));
         _mockedContainer.Received(1).Exists(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
-    public void BlobContainerClientFactory_Create_Should_Not_Be_Called_During_Initialization()
+    public void BlobContainerClientFactory_Create_Should_Be_Called_During_Initialization()
     {
-        // Arrange
-
-
-        // Act
-        var sut = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
+        // Arrange/Act
+        var sut = new BlobStorageMockResponseProvider(_factoryMock, _options);
 
         // Assert
-        _factoryMock.Received(0).Create(Arg.Any<string>(), Arg.Any<string>());
-        _mockedContainer.Received(0).Exists(Arg.Any<CancellationToken>());
+        _factoryMock.Received(1).Create(Arg.Any<string>(), Arg.Any<string>());
+        _mockedContainer.Received(1).Exists(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -110,7 +81,7 @@ public sealed class BlobStorageMockResponseProviderTests
         var mockedBlobClient = SetupBlobClient(identifier);
         _factoryMock.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(_mockedContainer);
 
-        var sut = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
+        var sut = new BlobStorageMockResponseProvider(_factoryMock, _options);
 
         // Act/Assert
         await Assert.ThrowsAsync<FileNotFoundException>(() => sut.GetMockResponseAsync(identifier));
@@ -130,7 +101,7 @@ public sealed class BlobStorageMockResponseProviderTests
         var mockedBlobClient = SetupBlobClient(identifier, json);
         _factoryMock.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(_mockedContainer);
 
-        var sut = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
+        var sut = new BlobStorageMockResponseProvider(_factoryMock, _options);
 
         // Act
         var (response, providerName) = await sut.GetMockResponseAsync(identifier);
@@ -142,56 +113,6 @@ public sealed class BlobStorageMockResponseProviderTests
         _mockedContainer.Received(1).GetBlobClient(identifier);
         await mockedBlobClient.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
         await mockedBlobClient.Received(1).DownloadContentAsync();
-    }
-
-    [TestMethod]
-    public async Task Changes_To_Options_Should_Create_A_New_IBlobContainerClientFactory()
-    {
-        // Arrange
-        const string identifier = "fake.json";
-        const string newConnectionString = "newConnString";
-        const string newContainerName = "newContName";
-
-        var mockedBlobClient = SetupBlobClient(identifier);
-        _factoryMock.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(_mockedContainer);
-
-        var sut = new BlobStorageMockResponseProvider(_factoryMock, _optionsMock);
-
-        // Act
-        await Assert.ThrowsAsync<FileNotFoundException>(() => sut.GetMockResponseAsync(identifier));
-
-        _optionsMock.TriggerChange(new BlobStorageOptions
-        {
-            ConnectionString = newConnectionString,
-            ContainerName = newContainerName
-        });
-
-        await Assert.ThrowsAsync<FileNotFoundException>(() => sut.GetMockResponseAsync(identifier));
-
-        // Assert
-        _factoryMock.Received(1).Create(DefaultConnectionString, DefaultContainerName);
-        _factoryMock.Received(1).Create(newConnectionString, newContainerName);
-    }
-
-    [TestMethod]
-    public void Dispose_Should_Remove_OptionsMonitor_ChangeListener()
-    {
-        // Arrange
-        var trackableDisposable = new TrackableDisposable();
-        var options = new BlobStorageOptions
-        {
-            ConnectionString = DefaultConnectionString,
-            ContainerName = DefaultContainerName
-        };
-        var optionsMonitor = new TestOptionsMonitor<BlobStorageOptions>(options, trackableDisposable);
-        var provider = new BlobStorageMockResponseProvider(_factoryMock, optionsMonitor);
-
-        // Act
-        provider.Dispose();
-
-        // Assert
-        Assert.IsNotNull(provider);
-        Assert.IsTrue(trackableDisposable.WasDisposed);
     }
 
     private BlobClient CreateBlobClient(string identifier)
