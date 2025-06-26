@@ -101,13 +101,20 @@ app.UseApiMocking();
 
 ## 🧪 Troubleshooting
 
+The Azure Blob Storage mock provider may encounter configuration or runtime errors that prevent it from serving mock responses.
+> ℹ️ **Note:** Detailed error messages (such as missing or invalid configuration) are logged by the application. The HTTP response will typically return a generic error message like:
+> ```html
+> 500 - Application configuration is missing or invalid. See logs for more details.
+> ```
+> Check application logs for full diagnostic information, including exception details and stack traces.
+
 ### Missing Configurations
 
 #### ⚠️ Missing `ConnectionString`
 
 **Error Message**
 
-AzureBlobStorageOptions.ConnectionString must not be null or empty.
+The ConnectionString field is required.
 
 **Cause**
 
@@ -125,7 +132,7 @@ dotnet user-secrets set "MockOptions:BlobStorageOptions:ConnectionString" "<your
 
 **Error Message**
 
-AzureBlobStorageOptions.ContainerName must not be null or empty.
+The ContainerName field is required.
 
 **Cause**
 
@@ -142,21 +149,42 @@ dotnet user-secrets set "MockOptions:BlobStorageOptions:ContainerName" "<your-co
 
 ### Runtime Errors
 
-#### ⚠️ Blob container not found
+#### ⚠️ Unable to Access Azure Storage Container
 
 **Error Message**
 
-The specified container does not exist.
+```html
+500 - An application configuration error occurred. See logs for more details.
+```
+> The application returns a generic `500 Internal Server Error` to avoid exposing sensitive details. Check the logs for specific root cause.
+
+**Example Log Output**
+```text
+An application configuration error occurred. See logs for more details. Unable to access the Azure Storage Container: The account being accessed does not support http.
+RequestId:********-****-****-****-************
+Status: 400 (The account being accessed does not support http.)
+ErrorCode: AccountRequiresHttps
+```
 
 **Cause**
 
-The `ContainerName` is incorrect, or the specified container does not exist in the configured Azure Storage account.
+The Azure Blob Storage provider failed to connect to the configured container. This is often due to:
+* Incorrect or incomplete `ConnectionString`
+* Nonexistent or misnamed container
+* Missing permissions or expired credentials
+* Storage account requiring HTTPS
+* Network restrictions, firewall rules, or IP filtering
 
 **Solution**
 
-Double-check the `ContainerName` setting, verify that the container exists in your Azure Storage account, and the correct permissions are configured for the storage account.
+Check your `MockOptions:BlobStorageOptions` configuration and ensure:
+* The connection string uses `https://` (not `http://`)
+* The `ContainerName` is correct and the container exists
+* The storage account key or credentials are valid and have read access
 
 > 🔐 Ensure the storage account connection string has **read permissions** to the container. This is typically required if using a shared access key or managed identity.
+
+> 🔗 See also: [Azure Storage error codes](https://learn.microsoft.com/en-us/rest/api/storageservices/common-rest-api-error-codes)
 
 > 📘 For additional error handling scenarios, see the [Core Troubleshooting Guide](../MockResponse.Middleware.Core/README.md#-troubleshooting).
 
