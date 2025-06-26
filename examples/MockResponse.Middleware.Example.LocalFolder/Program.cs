@@ -4,7 +4,6 @@ using MockResponse.Middleware.LocalFolderStore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IFileSystem, FileSystem>();
 builder.Services.AddApiMocking(builder.Configuration)
     .AddLocalFolderStore();
 

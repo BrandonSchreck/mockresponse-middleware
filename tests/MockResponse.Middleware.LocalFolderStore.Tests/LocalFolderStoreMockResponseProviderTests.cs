@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using NSubstitute;
+﻿using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
 namespace MockResponse.Middleware.LocalFolderStore.Tests;
@@ -7,7 +6,7 @@ namespace MockResponse.Middleware.LocalFolderStore.Tests;
 [TestClass]
 public class LocalFolderStoreMockResponseProviderTests
 {
-    private IOptionsMonitor<LocalFolderStoreOptions> _optionsMock = default!;
+    private LocalFolderStoreOptions _options = default!;
     private IFileSystem _fileSystem = default!;
 
     [TestInitialize]
@@ -15,11 +14,10 @@ public class LocalFolderStoreMockResponseProviderTests
     {
         _fileSystem = Substitute.For<IFileSystem>();
 
-        _optionsMock = Substitute.For<IOptionsMonitor<LocalFolderStoreOptions>>();
-        _optionsMock.CurrentValue.Returns(new LocalFolderStoreOptions
+        _options = new LocalFolderStoreOptions
         {
             FolderPath = "some/path"
-        });
+        };
     }
 
     [TestMethod]
@@ -27,7 +25,7 @@ public class LocalFolderStoreMockResponseProviderTests
     {
         // Arrange/Act/Assert
         Assert.ThrowsException<ArgumentNullException>(() =>
-            new LocalFolderStoreMockResponseProvider(null!, _optionsMock)
+            new LocalFolderStoreMockResponseProvider(null!, _options)
         );
     }
 
@@ -40,28 +38,13 @@ public class LocalFolderStoreMockResponseProviderTests
         );
     }
 
-    [DataTestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    public void Constructor_Throws_ArgumentException_For_Invalid_LocalFolderStoreOptions(string folderPath)
-    {
-        // Arrange
-        _optionsMock.CurrentValue.Returns(new LocalFolderStoreOptions
-        {
-            FolderPath = folderPath
-        });
-
-        // Act/Assert
-        Assert.Throws<ArgumentException>(() => new LocalFolderStoreMockResponseProvider(_fileSystem, _optionsMock));
-    }
-
     [TestMethod]
     public async Task GetMockResponseAsync_Throws_FileNotFoundException_When_File_Does_Not_Exist()
     {
         // Arrange
         _fileSystem.Exists(Arg.Any<string>()).Throws<FileNotFoundException>();
 
-        var sut = new LocalFolderStoreMockResponseProvider(_fileSystem, _optionsMock);
+        var sut = new LocalFolderStoreMockResponseProvider(_fileSystem, _options);
 
         // Act/Assert
         await Assert.ThrowsAsync<FileNotFoundException>(() => sut.GetMockResponseAsync("some-file.json"));
@@ -76,7 +59,7 @@ public class LocalFolderStoreMockResponseProviderTests
         _fileSystem.Exists(Arg.Any<string>()).Returns(true);
         _fileSystem.ReadAllTextAsync(Arg.Any<string>()).Returns(json);
 
-        var sut = new LocalFolderStoreMockResponseProvider(_fileSystem, _optionsMock);
+        var sut = new LocalFolderStoreMockResponseProvider(_fileSystem, _options);
 
         // Act
         var (response, providerName) = await sut.GetMockResponseAsync("some-file.json");

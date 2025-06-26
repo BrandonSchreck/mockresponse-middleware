@@ -2,6 +2,7 @@
 using MockResponse.Middleware.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace MockResponse.Middleware.Core;
 
@@ -13,7 +14,7 @@ namespace MockResponse.Middleware.Core;
 /// <param name="resolver">Resolves mock reference metadata for a given <see cref="HttpContext"/>.</param>
 /// <param name="provider">Provides the mock response content based on the resolved reference.</param>
 /// <param name="logger">Logger used to emit diagnostic information.</param>
-public class MockResponseMiddleware(RequestDelegate next, IEnumerable<IMockingPolicy> policies, IMockReferenceResolver resolver, IMockResponseProvider provider, ILogger<MockResponseMiddleware> logger)
+public class MockResponseMiddleware(RequestDelegate next, IEnumerable<IMockingPolicy> policies, IMockReferenceResolver resolver, IMockProviderFactory factory, ILogger<MockResponseMiddleware> logger)
 {
     /// <summary>
     /// Processes the incoming HTTP request and serves a mock response if applicable.
@@ -31,7 +32,7 @@ public class MockResponseMiddleware(RequestDelegate next, IEnumerable<IMockingPo
                 await next(context);
                 return;
             }
-            
+
             if (!resolver.TryGetMockReferenceResult(context, out var result))
             {
                 logger.LogWarning("{Error}", result.ErrorMessage);
@@ -39,21 +40,35 @@ public class MockResponseMiddleware(RequestDelegate next, IEnumerable<IMockingPo
                 return;
             }
 
+            IMockResponseProvider provider = factory.Create();
+
             var (response, providerName) = await provider.GetMockResponseAsync(result.Reference!.Identifier);
             logger.LogInformation("Serving mock {Key} via {Provider}", result.Reference.Key, providerName);
             await context.WriteResponseAsync(result.Reference.Identifier, providerName, response, result.StatusCode);
         }
         catch (FileNotFoundException ex)
         {
-            const string errorMessage = "Mock file was not found."; 
+            const string errorMessage = "Mock file was not found.";
             logger.LogError(ex, "{ErrorMessage} {ExceptionMessage}", errorMessage, ex.Message);
             await context.WriteResponseAsync(errorMessage, StatusCodes.Status404NotFound);
+        }
+        catch (InvalidOperationException ex)
+        {
+            const string errorMessage = "An application configuration error occurred. See logs for more details.";
+            logger.LogCritical(ex,"{ErrorMessage} {ExceptionMessage}", errorMessage, ex.Message);
+            await context.WriteResponseAsync(errorMessage, StatusCodes.Status500InternalServerError);
+        }
+        catch (ValidationException ex)
+        {
+            const string errorMessage = "Application configuration is missing or invalid. See logs for more details.";
+            logger.LogCritical(ex, "{ErrorMessage} {ExceptionMessage}", errorMessage, ex.Message);
+            await context.WriteResponseAsync(errorMessage, StatusCodes.Status500InternalServerError);
         }
         catch (Exception ex)
         {
             const string errorMessage = "An unhandled error occurred.";
             logger.LogError(ex, "{ErrorMessage} {ExceptionMessage}", errorMessage, ex.Message);
-            await context.WriteResponseAsync(errorMessage, StatusCodes.Status500InternalServerError);
+            await context.WriteResponseAsync($"{errorMessage} - {ex.Message}", StatusCodes.Status500InternalServerError);
         }
     }
 }
