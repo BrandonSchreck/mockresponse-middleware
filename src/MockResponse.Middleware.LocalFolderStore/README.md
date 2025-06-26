@@ -97,7 +97,7 @@ Place your mock JSON files in the folder specified by `FolderPath`. Each file is
 
 **Error Message**
 
-LocalFolderStoreOptions.FolderPath must not be null or empty.
+The FolderPath field is required.
 
 **Cause**
 
@@ -124,7 +124,7 @@ Make sure your `appsettings.json` (or other configuration source) includes a val
 
 **Error Message**
 
-The mock file 'Mocks/WeatherForecast.json' could not be found.
+Mock file was not found.
 
 **Cause**
 
