@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MockResponse.Middleware.Azure.BlobStorage" Version="0.1.0-preview.20" />
+    <PackageReference Include="MockResponse.Middleware.Azure.BlobStorage" Version="8.0.1" />
   </ItemGroup>
 
 </Project>
